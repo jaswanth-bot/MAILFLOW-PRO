@@ -1,22 +1,31 @@
 const admin = require("firebase-admin");
 
-// Only initialize if it hasn't been already (prevents errors on Vercel hot-reloads)
 if (!admin.apps.length) {
   try {
-    // If the user has explicitly provided a service account JSON string in the environment
-    if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+    // Check if the user has provided the 3 main pieces of the Service Account directly
+    if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) {
+      admin.initializeApp({
+        credential: admin.credential.cert({
+          projectId: process.env.FIREBASE_PROJECT_ID,
+          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+          // Vercel sometimes escapes newlines in private keys, we fix it dynamically
+          privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+        })
+      });
+      console.log("🔥 Firebase Admin Initialized with Individual Vercel Environment Variables");
+    } 
+    // Fallback if they pasted the entire JSON file as one string
+    else if (process.env.FIREBASE_SERVICE_ACCOUNT) {
       const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
       admin.initializeApp({
         credential: admin.credential.cert(serviceAccount)
       });
-      console.log("Firebase Admin Initialized with Custom Service Account");
+      console.log("🔥 Firebase Admin Initialized with JSON Object");
     } else {
-      // Fallback for local development or GCP default credentials
-      console.log("Firebase Admin initializing with Default Credentials (ensure GOOGLE_APPLICATION_CREDENTIALS is set if not on GCP/Vercel)");
-      admin.initializeApp();
+      console.error("❌ CRITICAL: No Firebase credentials found in Vercel Environment Variables!");
     }
   } catch (error) {
-    console.error("Firebase Admin Initialization Error:", error);
+    console.error("❌ Firebase Admin Initialization Error:", error.message);
   }
 }
 
