@@ -50,16 +50,29 @@ export const sendEmail = async (to, subject, message, accessToken, userId) => {
  * Fetches the user's email history from Firestore.
  */
 export const fetchHistory = async (userId) => {
-  const q = query(
-    collection(db, "emails"),
-    where("userId", "==", userId),
-    orderBy("timestamp", "desc")
-  );
-  
-  const querySnapshot = await getDocs(q);
-  const data = [];
-  querySnapshot.forEach((doc) => {
-    data.push({ id: doc.id, ...doc.data() });
-  });
-  return data;
+  try {
+    console.log("Fetching emails for UID:", userId);
+    
+    // We remove the 'orderBy' temporarily to avoid the need for a composite index initially
+    const q = query(
+      collection(db, "emails"),
+      where("userId", "==", userId)
+    );
+    
+    const querySnapshot = await getDocs(q);
+    const data = [];
+    querySnapshot.forEach((doc) => {
+      data.push({ id: doc.id, ...doc.data() });
+    });
+
+    // Manually sort since the backend index might not be ready yet
+    return data.sort((a, b) => {
+      const timeA = a.timestamp?.seconds || 0;
+      const timeB = b.timestamp?.seconds || 0;
+      return timeB - timeA;
+    });
+  } catch (error) {
+    console.error("Firestore history error:", error);
+    throw error;
+  }
 };
