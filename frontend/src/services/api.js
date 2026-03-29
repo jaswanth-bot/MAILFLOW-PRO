@@ -1,14 +1,4 @@
 import axios from "axios";
-import { db } from "./firebase";
-import { 
-  collection, 
-  addDoc, 
-  serverTimestamp, 
-  query, 
-  where, 
-  orderBy, 
-  getDocs 
-} from "firebase/firestore";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -22,6 +12,7 @@ export const verifyLogin = async (idToken) => {
 
 /**
  * Sends an email using the Gmail API through our backend.
+ * The backend handles successfully logging the transmission securely.
  */
 export const sendEmail = async (to, subject, message, accessToken, userId) => {
   const response = await axios.post(`${API_BASE_URL}/email/send`, {
@@ -29,50 +20,22 @@ export const sendEmail = async (to, subject, message, accessToken, userId) => {
     subject,
     message,
     accessToken,
+    userId, // Passed for backend Firebase logging
   });
-
-  // Log successfully sent email to Firestore
-  if (response.data.success) {
-    await addDoc(collection(db, "emails"), {
-      userId,
-      to_email: to,
-      subject,
-      message,
-      status: "sent",
-      timestamp: serverTimestamp(),
-    });
-  }
 
   return response.data;
 };
 
 /**
- * Fetches the user's email history from Firestore.
+ * Fetches the user's email history via our secure backend.
  */
 export const fetchHistory = async (userId) => {
   try {
     console.log("Fetching emails for UID:", userId);
-    
-    // We remove the 'orderBy' temporarily to avoid the need for a composite index initially
-    const q = query(
-      collection(db, "emails"),
-      where("userId", "==", userId)
-    );
-    
-    const querySnapshot = await getDocs(q);
-    const data = [];
-    querySnapshot.forEach((doc) => {
-      data.push({ id: doc.id, ...doc.data() });
-    });
-
-    // Manually sort since the backend index might not be ready yet
-    return data.sort((a, b) => {
-      const timeA = a.timestamp?.seconds || 0;
-      const timeB = b.timestamp?.seconds || 0;
-      return timeB - timeA;
-    });
+    const response = await axios.get(`${API_BASE_URL}/email/history?userId=${userId}`);
+    return response.data;
   } catch (error) {
-    console.error("Firestore history error:", error);
+    console.error("History fetch error:", error);
     throw error;
   }
 };
