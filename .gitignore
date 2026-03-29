@@ -1,0 +1,20 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+backend/node_modules/
+
+# Environment Variables
+.env
+frontend/.env
+backend/.env
+server/.env
+
+# Build Artifacts
+dist/
+frontend/dist/
+backend/dist/
+.firebase/
+
+# Misc
+.DS_Store
+*.log

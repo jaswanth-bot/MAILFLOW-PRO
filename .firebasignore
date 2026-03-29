@@ -1,0 +1,4 @@
+# Never upload secrets with `firebase deploy`
+functions/.env
+**/.env
+**/.env.*

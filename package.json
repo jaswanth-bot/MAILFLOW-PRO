@@ -1,0 +1,16 @@
+{
+  "name": "email-sender-web-app",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Email Sender — React + Firebase + SendGrid",
+  "scripts": {
+    "install:all": "npm --prefix frontend install && npm --prefix backend install",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "dev:backend": "npm --prefix backend start",
+    "deploy:hosting": "firebase deploy --only hosting"
+  },
+  "main": "index.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
