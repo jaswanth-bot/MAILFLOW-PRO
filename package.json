@@ -5,6 +5,7 @@
   "description": "Email Sender — React + Firebase + SendGrid",
   "scripts": {
     "install:all": "npm --prefix frontend install && npm --prefix backend install",
+    "build": "npm --prefix frontend run build && npm --prefix backend install",
     "dev:frontend": "npm --prefix frontend run dev",
     "dev:backend": "npm --prefix backend start",
     "deploy:hosting": "firebase deploy --only hosting"
